@@ -4,9 +4,7 @@ import info.tongrenlu.android.downloadmanager.BaseDownloadTaskAdapter;
 import info.tongrenlu.android.downloadmanager.DownloadListener;
 import info.tongrenlu.android.downloadmanager.DownloadManager;
 import info.tongrenlu.android.downloadmanager.DownloadTask;
-
-import java.io.File;
-
+import info.tongrenlu.android.downloadmanager.DownloadTaskInfo;
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -41,7 +39,7 @@ public class DownloadTaskAdapter extends BaseDownloadTaskAdapter {
 
         DownloadTask task = this.getItem(position);
         holder.bind(task);
-        holder.update(task);
+        holder.update(task.getTaskinfo());
         return view;
     }
 
@@ -60,32 +58,32 @@ public class DownloadTaskAdapter extends BaseDownloadTaskAdapter {
             task.registerListener(this);
         }
 
-        public void update(DownloadTask task) {
+        public void update(DownloadTaskInfo taskinfo) {
             this.icon.setImageDrawable(null);
-            this.text1.setText(task.getFrom());
-            switch (task.getStatus()) {
+            this.text1.setText(taskinfo.getFrom());
+            switch (this.task.getStatus()) {
             case PENDING:
                 this.text2.setText("PENDING");
                 break;
             case RUNNING:
-                if (task.isCancelled()) {
+                if (this.task.isCancelled()) {
                     this.text2.setText("RUNNING && canceled");
-                } else if (task.getProgress() < 100) {
+                } else if (taskinfo.getProgress() < 100) {
                     this.text2.setText(String.format("%d%% (%d / %d)",
-                                                     task.getProgress(),
-                                                     task.getRead(),
-                                                     task.getTotal()));
-                } else if (task.getProgress() == 100) {
-                    File to = task.getTo();
-                    Drawable background = BitmapDrawable.createFromPath(to.getAbsolutePath());
+                                                     taskinfo.getProgress(),
+                                                     taskinfo.getRead(),
+                                                     taskinfo.getTotal()));
+                } else if (taskinfo.getProgress() == 100) {
+                    String path = taskinfo.getTo();
+                    Drawable background = BitmapDrawable.createFromPath(path);
                     this.icon.setImageDrawable(background);
                     this.text2.setText("");
                 }
                 break;
             case FINISHED:
-                if (task.getProgress() == 100) {
-                    File to = task.getTo();
-                    Drawable background = BitmapDrawable.createFromPath(to.getAbsolutePath());
+                if (taskinfo.getProgress() == 100) {
+                    String path = taskinfo.getTo();
+                    Drawable background = BitmapDrawable.createFromPath(path);
                     this.icon.setImageDrawable(background);
                     this.text2.setText("");
                 } else {
@@ -98,23 +96,23 @@ public class DownloadTaskAdapter extends BaseDownloadTaskAdapter {
         }
 
         @Override
-        public void onDownloadStart(DownloadTask task) {
-            this.update(task);
+        public void onDownloadStart(DownloadTaskInfo taskinfo) {
+            this.update(taskinfo);
         }
 
         @Override
-        public void onDownloadCancel(DownloadTask task) {
-            this.update(task);
+        public void onDownloadCancel(DownloadTaskInfo taskinfo) {
+            this.update(taskinfo);
         }
 
         @Override
-        public void onDownloadFinish(DownloadTask task) {
-            this.update(task);
+        public void onDownloadFinish(DownloadTaskInfo taskinfo) {
+            this.update(taskinfo);
         }
 
         @Override
-        public void onDownloadProgressUpdate(DownloadTask task) {
-            this.update(task);
+        public void onDownloadProgressUpdate(DownloadTaskInfo taskinfo) {
+            this.update(taskinfo);
         }
     }
 

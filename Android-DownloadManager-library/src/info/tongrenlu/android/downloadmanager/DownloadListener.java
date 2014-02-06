@@ -2,12 +2,12 @@ package info.tongrenlu.android.downloadmanager;
 
 public interface DownloadListener {
 
-    void onDownloadStart(DownloadTask task);
+    void onDownloadStart(DownloadTaskInfo taskinfo);
 
-    void onDownloadCancel(DownloadTask task);
+    void onDownloadCancel(DownloadTaskInfo taskinfo);
 
-    void onDownloadFinish(DownloadTask task);
+    void onDownloadFinish(DownloadTaskInfo taskinfo);
 
-    void onDownloadProgressUpdate(DownloadTask task);
+    void onDownloadProgressUpdate(DownloadTaskInfo taskinfo);
 
 }

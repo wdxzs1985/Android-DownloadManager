@@ -1,11 +1,7 @@
 package info.tongrenlu.android.downloadmanager.sample;
 
-import info.tongrenlu.android.downloadmanager.DownloadManager;
-import info.tongrenlu.android.downloadmanager.DownloadManagerImpl;
-import info.tongrenlu.android.downloadmanager.DownloadTask;
 import info.tongrenlu.android.helper.HttpHelper;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import org.json.JSONArray;
@@ -13,27 +9,33 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnClickListener, OnItemClickListener {
 
-    private DownloadManager mDownloadManager = null;
+    private LocalBroadcastManager mLocalBroadcastManager = null;
+    private BroadcastReceiver mAdapterReceiver = null;
     private DownloadTaskAdapter mAdapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
-        this.mDownloadManager = new DownloadManagerImpl(2);
 
-        this.mAdapter = new DownloadTaskAdapter(this.mDownloadManager);
+        this.mAdapter = new DownloadTaskAdapter(DownloadService.DOWNLOAD_MANAGER);
         ListView listview = (ListView) this.findViewById(android.R.id.list);
         listview.setAdapter(this.mAdapter);
         listview.setOnItemClickListener(this);
@@ -43,13 +45,40 @@ public class MainActivity extends Activity implements OnClickListener, OnItemCli
 
         Button button2 = (Button) this.findViewById(android.R.id.button2);
         button2.setOnClickListener(this);
+
+        this.mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
+        this.mAdapterReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(final Context context, final Intent intent) {
+                final String action = intent.getAction();
+                if (DownloadService.EVENT_UPDATE.equals(action)) {
+                    MainActivity.this.mAdapter.notifyDataSetChanged();
+                    Toast.makeText(MainActivity.this,
+                                   "EVENT_UPDATE",
+                                   Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+        final IntentFilter filter = new IntentFilter();
+        filter.addAction(DownloadService.EVENT_UPDATE);
+        this.mLocalBroadcastManager.registerReceiver(this.mAdapterReceiver,
+                                                     filter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.mLocalBroadcastManager.unregisterReceiver(this.mAdapterReceiver);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
         case android.R.id.button1:
-            this.mDownloadManager.start();
+            Context context = MainActivity.this.getApplicationContext();
+            Intent intent = new Intent(context, DownloadService.class);
+            intent.setAction(DownloadService.ACTION_START);
+            context.startService(intent);
             break;
         case android.R.id.button2:
             new LoadPatternsListTask().execute();
@@ -57,13 +86,6 @@ public class MainActivity extends Activity implements OnClickListener, OnItemCli
         default:
             break;
         }
-
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        this.mDownloadManager.shutdown();
     }
 
     private class LoadPatternsListTask extends AsyncTask<Void, Void, ArrayList<String>> {
@@ -94,28 +116,20 @@ public class MainActivity extends Activity implements OnClickListener, OnItemCli
 
         @Override
         protected void onPostExecute(ArrayList<String> articleIds) {
-            File dir = MainActivity.this.getCacheDir();
-            for (String articleId : articleIds) {
-                String from = String.format("http://www.tongrenlu.info/resource/%s/cover_%d.jpg",
-                                            articleId,
-                                            400);
-                File to = new File(dir, articleId + ".jpg");
-                DownloadTask task = new DownloadTask(from, to);
-                MainActivity.this.mDownloadManager.addTask(task);
-
-            }
-
-            MainActivity.this.mAdapter.notifyDataSetChanged();
+            Context context = MainActivity.this.getApplicationContext();
+            Intent intent = new Intent(context, DownloadService.class);
+            intent.setAction(DownloadService.ACTION_ADD);
+            intent.putExtra("articleIds", articleIds);
+            context.startService(intent);
         }
     }
 
     @Override
     public void onItemClick(AdapterView<?> listview, View arg1, int position, long arg3) {
-        DownloadTask task = (DownloadTask) listview.getItemAtPosition(position);
-        if (task.isCancelled()) {
-            this.mDownloadManager.removeTask(task);
-        } else {
-            this.mDownloadManager.cancelTask(task);
-        }
+        Context context = MainActivity.this.getApplicationContext();
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.setAction(DownloadService.ACTION_REMOVE);
+        intent.putExtra("position", position);
+        context.startService(intent);
     }
 }

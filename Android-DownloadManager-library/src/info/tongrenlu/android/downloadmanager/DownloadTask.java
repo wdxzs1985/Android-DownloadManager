@@ -17,18 +17,15 @@ import org.apache.commons.io.IOUtils;
 
 import android.os.AsyncTask;
 
-public class DownloadTask extends AsyncTask<Object, Long, File> {
+public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
 
-    private final String mFrom;
-    private final File mTo;
-    private long mRead = 0;
-    private long mTotal = 0;
-    private int mProgress = 0;
     private final Set<DownloadListener> listeners = Collections.synchronizedSet(new HashSet<DownloadListener>());
 
-    public DownloadTask(String from, File to) {
-        this.mFrom = from;
-        this.mTo = to;
+    private final DownloadTaskInfo taskinfo = new DownloadTaskInfo();
+
+    public DownloadTask(String from, String to) {
+        this.taskinfo.setFrom(from);
+        this.taskinfo.setTo(to);
     }
 
     public void registerListener(DownloadListener listener) {
@@ -40,12 +37,14 @@ public class DownloadTask extends AsyncTask<Object, Long, File> {
     }
 
     @Override
-    protected File doInBackground(final Object... params) {
-        boolean isAppend = this.mRead > 0;
+    protected DownloadTaskInfo doInBackground(final Object... params) {
         InputStream input = null;
         OutputStream output = null;
+        String form = this.taskinfo.getFrom();
+        String to = this.taskinfo.getTo();
+        boolean isAppend = false;
         try {
-            final URL url = new URL(this.mFrom);
+            final URL url = new URL(form);
             final URLConnection connection = url.openConnection();
             connection.setConnectTimeout(60 * 1000);
             connection.setReadTimeout(60 * 1000);
@@ -56,10 +55,7 @@ public class DownloadTask extends AsyncTask<Object, Long, File> {
             final long contentLength = connection.getContentLength();
             // download the file
             input = new BufferedInputStream(url.openStream());
-            if (isAppend) {
-                input.skip(this.mRead);
-            }
-            output = FileUtils.openOutputStream(this.mTo, isAppend);
+            output = FileUtils.openOutputStream(new File(to), isAppend);
 
             final byte data[] = new byte[1024];
             int count;
@@ -83,28 +79,33 @@ public class DownloadTask extends AsyncTask<Object, Long, File> {
             IOUtils.closeQuietly(input);
             IOUtils.closeQuietly(output);
         }
-        return this.mTo;
+        return this.taskinfo;
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        this.mRead = 0;
-        this.mTotal = 0;
-        this.mProgress = 0;
+        this.taskinfo.setRead(0l);
+        this.taskinfo.setTotal(0l);
+        this.taskinfo.setProgress(0);
         for (DownloadListener listener : this.listeners) {
-            listener.onDownloadStart(this);
+            listener.onDownloadStart(this.taskinfo);
         }
     }
 
     @Override
     protected void onProgressUpdate(Long... values) {
         super.onProgressUpdate(values);
-        this.mRead = values[0];
-        this.mTotal = values[1];
-        this.mProgress = (int) (this.mRead * 100 / this.mTotal);
+        long read = values[0];
+        long total = values[1];
+        int progress = (int) (read * 100 / total);
+
+        this.taskinfo.setRead(read);
+        this.taskinfo.setTotal(total);
+        this.taskinfo.setProgress(progress);
+
         for (DownloadListener listener : this.listeners) {
-            listener.onDownloadProgressUpdate(this);
+            listener.onDownloadProgressUpdate(this.taskinfo);
         }
     }
 
@@ -112,36 +113,19 @@ public class DownloadTask extends AsyncTask<Object, Long, File> {
     protected void onCancelled() {
         super.onCancelled();
         for (DownloadListener listener : this.listeners) {
-            listener.onDownloadCancel(this);
+            listener.onDownloadCancel(this.taskinfo);
         }
     }
 
     @Override
-    protected void onPostExecute(File result) {
+    protected void onPostExecute(DownloadTaskInfo result) {
         super.onPostExecute(result);
         for (DownloadListener listener : this.listeners) {
-            listener.onDownloadFinish(this);
+            listener.onDownloadFinish(this.taskinfo);
         }
     }
 
-    public long getRead() {
-        return this.mRead;
+    public DownloadTaskInfo getTaskinfo() {
+        return this.taskinfo;
     }
-
-    public long getTotal() {
-        return this.mTotal;
-    }
-
-    public int getProgress() {
-        return this.mProgress;
-    }
-
-    public String getFrom() {
-        return this.mFrom;
-    }
-
-    public File getTo() {
-        return this.mTo;
-    }
-
 }
