@@ -1,4 +1,9 @@
-package com.example.downloadmanager.sample;
+package info.tongrenlu.android.downloadmanager.sample;
+
+import info.tongrenlu.android.downloadmanager.DownloadManager;
+import info.tongrenlu.android.downloadmanager.DownloadManagerImpl;
+import info.tongrenlu.android.downloadmanager.DownloadTask;
+import info.tongrenlu.android.helper.HttpHelper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,11 +21,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
-
-import com.example.downloadmanager.DownloadManager;
-import com.example.downloadmanager.DownloadManagerImpl;
-import com.example.downloadmanager.DownloadTask;
-import com.example.helper.HttpHelper;
 
 public class MainActivity extends Activity implements OnClickListener, OnItemClickListener {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.helper;
+package info.tongrenlu.android.helper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;

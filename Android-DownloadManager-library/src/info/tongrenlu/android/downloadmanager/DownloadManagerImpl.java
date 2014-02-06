@@ -1,4 +1,4 @@
-package com.example.downloadmanager;
+package info.tongrenlu.android.downloadmanager;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package com.example.downloadmanager;
+package info.tongrenlu.android.downloadmanager;
 
 public interface DownloadListener {
 

@@ -1,4 +1,9 @@
-package com.example.downloadmanager.sample;
+package info.tongrenlu.android.downloadmanager.sample;
+
+import info.tongrenlu.android.downloadmanager.BaseDownloadTaskAdapter;
+import info.tongrenlu.android.downloadmanager.DownloadListener;
+import info.tongrenlu.android.downloadmanager.DownloadManager;
+import info.tongrenlu.android.downloadmanager.DownloadTask;
 
 import java.io.File;
 
@@ -9,11 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.example.downloadmanager.BaseDownloadTaskAdapter;
-import com.example.downloadmanager.DownloadListener;
-import com.example.downloadmanager.DownloadManager;
-import com.example.downloadmanager.DownloadTask;
 
 public class DownloadTaskAdapter extends BaseDownloadTaskAdapter {
 
