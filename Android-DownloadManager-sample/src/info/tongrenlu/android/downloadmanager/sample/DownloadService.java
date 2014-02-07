@@ -1,7 +1,6 @@
 package info.tongrenlu.android.downloadmanager.sample;
 
 import info.tongrenlu.android.downloadmanager.DownloadManager;
-import info.tongrenlu.android.downloadmanager.DownloadManagerImpl;
 import info.tongrenlu.android.downloadmanager.DownloadTask;
 
 import java.io.File;
@@ -14,7 +13,6 @@ import android.support.v4.content.LocalBroadcastManager;
 
 public class DownloadService extends Service {
 
-    public static final DownloadManager DOWNLOAD_MANAGER = new DownloadManagerImpl(2);
     public static final String ACTION_ADD = "info.tongrenlu.android.downloadmanager.sample.DownloadService.action.add";
     public static final String ACTION_REMOVE = "info.tongrenlu.android.downloadmanager.sample.DownloadService.action.remove";
     public static final String ACTION_START = "info.tongrenlu.android.downloadmanager.sample.DownloadService.action.start";
@@ -23,10 +21,13 @@ public class DownloadService extends Service {
     public static final String EVENT_UPDATE = "info.tongrenlu.android.downloadmanager.sample.DownloadService.event.update";
 
     private LocalBroadcastManager mLocalBroadcastManager;
+    private DownloadManager mDownloadManager;
 
     @Override
     public void onCreate() {
-        this.mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
+        DownloadManagerApplicationImpl app = (DownloadManagerApplicationImpl) this.getApplication();
+        this.mLocalBroadcastManager = LocalBroadcastManager.getInstance(app);
+        this.mDownloadManager = app.getDownloadManager();
     }
 
     @Override
@@ -37,7 +38,7 @@ public class DownloadService extends Service {
         } else if (ACTION_REMOVE.equals(action)) {
             this.processRemoveRequest(intent);
         } else if (ACTION_START.equals(action)) {
-            DOWNLOAD_MANAGER.start();
+            this.mDownloadManager.start();
         } else if (ACTION_STOP.equals(action)) {
             this.stopSelf();
         }
@@ -53,16 +54,17 @@ public class DownloadService extends Service {
                                         400);
             String to = new File(dir, articleId + ".jpg").getAbsolutePath();
             DownloadTask task = new DownloadTask(from, to);
-            DOWNLOAD_MANAGER.addTask(task);
+            this.mDownloadManager.addTask(task);
         }
+        this.mDownloadManager.start();
         this.performEventUpdate();
     }
 
     private void processRemoveRequest(Intent intent) {
         int position = intent.getIntExtra("position", -1);
         if (position >= 0) {
-            DownloadTask task = DOWNLOAD_MANAGER.getTasks().get(position);
-            DOWNLOAD_MANAGER.removeTask(task);
+            DownloadTask task = this.mDownloadManager.getTasks().get(position);
+            this.mDownloadManager.removeTask(task);
         }
         this.performEventUpdate();
     }
@@ -76,7 +78,8 @@ public class DownloadService extends Service {
     public void onDestroy() {
         super.onDestroy();
         System.out.println("shutdown");
-        DownloadService.DOWNLOAD_MANAGER.shutdown();
+        this.mDownloadManager.shutdown();
+        this.mDownloadManager = null;
     }
 
     @Override
