@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collections;
@@ -23,21 +22,21 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
 
     private DownloadTaskInfo mTaskinfo = null;
 
-    public DownloadTask(String from, String to) {
+    public DownloadTask(final String from, final String to) {
         this.mTaskinfo = new DownloadTaskInfo();
         this.mTaskinfo.setFrom(from);
         this.mTaskinfo.setTo(to);
     }
 
-    public DownloadTask(DownloadTaskInfo taskinfo) {
+    public DownloadTask(final DownloadTaskInfo taskinfo) {
         this.mTaskinfo = taskinfo;
     }
 
-    public void registerListener(DownloadListener listener) {
+    public void registerListener(final DownloadListener listener) {
         this.listeners.add(listener);
     }
 
-    public void unregisterListener(DownloadListener listener) {
+    public void unregisterListener(final DownloadListener listener) {
         this.listeners.remove(listener);
     }
 
@@ -45,9 +44,9 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
     protected DownloadTaskInfo doInBackground(final Object... params) {
         InputStream input = null;
         OutputStream output = null;
-        String form = this.mTaskinfo.getFrom();
-        String to = this.mTaskinfo.getTo();
-        boolean isAppend = false;
+        final String form = this.mTaskinfo.getFrom();
+        final String to = this.mTaskinfo.getTo();
+        final boolean isAppend = false;
         try {
             final URL url = new URL(form);
             final URLConnection connection = url.openConnection();
@@ -74,12 +73,9 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
                     break;
                 }
             }
-        } catch (final MalformedURLException e) {
-            e.printStackTrace();
-            return null;
         } catch (final IOException e) {
             e.printStackTrace();
-            return null;
+            this.cancel(true);
         } finally {
             IOUtils.closeQuietly(input);
             IOUtils.closeQuietly(output);
@@ -93,23 +89,23 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
         this.mTaskinfo.setRead(0l);
         this.mTaskinfo.setTotal(0l);
         this.mTaskinfo.setProgress(0);
-        for (DownloadListener listener : this.listeners) {
+        for (final DownloadListener listener : this.listeners) {
             listener.onDownloadStart(this.mTaskinfo);
         }
     }
 
     @Override
-    protected void onProgressUpdate(Long... values) {
+    protected void onProgressUpdate(final Long... values) {
         super.onProgressUpdate(values);
-        long read = values[0];
-        long total = values[1];
-        int progress = (int) (read * 100 / total);
+        final long read = values[0];
+        final long total = values[1];
+        final int progress = (int) (read * 100 / total);
 
         this.mTaskinfo.setRead(read);
         this.mTaskinfo.setTotal(total);
         this.mTaskinfo.setProgress(progress);
 
-        for (DownloadListener listener : this.listeners) {
+        for (final DownloadListener listener : this.listeners) {
             listener.onDownloadProgressUpdate(this.mTaskinfo);
         }
     }
@@ -117,15 +113,15 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
     @Override
     protected void onCancelled() {
         super.onCancelled();
-        for (DownloadListener listener : this.listeners) {
+        for (final DownloadListener listener : this.listeners) {
             listener.onDownloadCancel(this.mTaskinfo);
         }
     }
 
     @Override
-    protected void onPostExecute(DownloadTaskInfo result) {
+    protected void onPostExecute(final DownloadTaskInfo result) {
         super.onPostExecute(result);
-        for (DownloadListener listener : this.listeners) {
+        for (final DownloadListener listener : this.listeners) {
             listener.onDownloadFinish(this.mTaskinfo);
         }
     }

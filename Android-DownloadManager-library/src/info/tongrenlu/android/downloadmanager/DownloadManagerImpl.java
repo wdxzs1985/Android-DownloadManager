@@ -3,21 +3,14 @@ package info.tongrenlu.android.downloadmanager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.collections.CollectionUtils;
 
 import android.os.AsyncTask.Status;
 
-public class DownloadManagerImpl implements DownloadManager {
+public class DownloadManagerImpl implements DownloadManager, DownloadListener {
 
     private final List<DownloadTask> mQueue = Collections.synchronizedList(new ArrayList<DownloadTask>());
-    private final ExecutorService exec;
-
-    public DownloadManagerImpl(int maxThreads) {
-        this.exec = Executors.newFixedThreadPool(maxThreads);
-    }
 
     @Override
     public List<DownloadTask> getTasks() {
@@ -25,13 +18,13 @@ public class DownloadManagerImpl implements DownloadManager {
     }
 
     @Override
-    public boolean addTask(DownloadTask task) {
-        boolean added = this.mQueue.add(task);
+    public boolean addTask(final DownloadTask task) {
+        final boolean added = this.mQueue.add(task);
         return added;
     }
 
     @Override
-    public boolean cancelTask(DownloadTask task) {
+    public boolean cancelTask(final DownloadTask task) {
         boolean canceled = false;
         if (task == null) {
             return canceled;
@@ -41,7 +34,7 @@ public class DownloadManagerImpl implements DownloadManager {
     }
 
     @Override
-    public boolean removeTask(DownloadTask task) {
+    public boolean removeTask(final DownloadTask task) {
         boolean removed = false;
         if (task == null) {
             return removed;
@@ -54,10 +47,10 @@ public class DownloadManagerImpl implements DownloadManager {
 
     @Override
     public void start() {
-        for (DownloadTask task : this.mQueue) {
-            if (task.getStatus() == Status.PENDING) {
-                task.executeOnExecutor(this.exec);
-            }
+        if (CollectionUtils.isNotEmpty(this.mQueue)) {
+            final DownloadTask task = this.mQueue.remove(0);
+            task.registerListener(this);
+            task.execute();
         }
     }
 
@@ -66,6 +59,23 @@ public class DownloadManagerImpl implements DownloadManager {
         if (CollectionUtils.isNotEmpty(this.mQueue)) {
             this.removeTask(this.mQueue.get(0));
         }
+    }
+
+    @Override
+    public void onDownloadStart(final DownloadTaskInfo taskinfo) {
+    }
+
+    @Override
+    public void onDownloadCancel(final DownloadTaskInfo taskinfo) {
+    }
+
+    @Override
+    public void onDownloadFinish(final DownloadTaskInfo taskinfo) {
+        this.start();
+    }
+
+    @Override
+    public void onDownloadProgressUpdate(final DownloadTaskInfo taskinfo) {
     }
 
 }
