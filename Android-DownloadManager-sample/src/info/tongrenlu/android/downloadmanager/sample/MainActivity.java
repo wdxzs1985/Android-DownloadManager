@@ -1,5 +1,6 @@
 package info.tongrenlu.android.downloadmanager.sample;
 
+import info.tongrenlu.android.downloadmanager.DownloadManager;
 import info.tongrenlu.android.helper.HttpHelper;
 
 import java.util.ArrayList;
@@ -35,7 +36,10 @@ public class MainActivity extends Activity implements OnClickListener, OnItemCli
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
 
-        this.mAdapter = new DownloadTaskAdapter(DownloadService.DOWNLOAD_MANAGER);
+        DownloadManagerApplicationImpl app = (DownloadManagerApplicationImpl) this.getApplication();
+        DownloadManager downloadManager = app.getDownloadManager();
+
+        this.mAdapter = new DownloadTaskAdapter(downloadManager);
         ListView listview = (ListView) this.findViewById(android.R.id.list);
         listview.setAdapter(this.mAdapter);
         listview.setOnItemClickListener(this);
@@ -75,10 +79,7 @@ public class MainActivity extends Activity implements OnClickListener, OnItemCli
     public void onClick(View v) {
         switch (v.getId()) {
         case android.R.id.button1:
-            Context context = MainActivity.this.getApplicationContext();
-            Intent intent = new Intent(context, DownloadService.class);
-            intent.setAction(DownloadService.ACTION_START);
-            context.startService(intent);
+            this.finish();
             break;
         case android.R.id.button2:
             new LoadPatternsListTask().execute();
@@ -116,12 +117,16 @@ public class MainActivity extends Activity implements OnClickListener, OnItemCli
 
         @Override
         protected void onPostExecute(ArrayList<String> articleIds) {
-            Context context = MainActivity.this.getApplicationContext();
-            Intent intent = new Intent(context, DownloadService.class);
-            intent.setAction(DownloadService.ACTION_ADD);
-            intent.putExtra("articleIds", articleIds);
-            context.startService(intent);
+            MainActivity.this.addDownloadTasks(articleIds);
         }
+    }
+
+    private void addDownloadTasks(ArrayList<String> articleIds) {
+        Context context = MainActivity.this.getApplicationContext();
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.setAction(DownloadService.ACTION_ADD);
+        intent.putExtra("articleIds", articleIds);
+        context.startService(intent);
     }
 
     @Override
