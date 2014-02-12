@@ -21,11 +21,16 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
 
     private final Set<DownloadListener> listeners = Collections.synchronizedSet(new HashSet<DownloadListener>());
 
-    private final DownloadTaskInfo taskinfo = new DownloadTaskInfo();
+    private DownloadTaskInfo mTaskinfo = null;
 
     public DownloadTask(String from, String to) {
-        this.taskinfo.setFrom(from);
-        this.taskinfo.setTo(to);
+        this.mTaskinfo = new DownloadTaskInfo();
+        this.mTaskinfo.setFrom(from);
+        this.mTaskinfo.setTo(to);
+    }
+
+    public DownloadTask(DownloadTaskInfo taskinfo) {
+        this.mTaskinfo = taskinfo;
     }
 
     public void registerListener(DownloadListener listener) {
@@ -40,8 +45,8 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
     protected DownloadTaskInfo doInBackground(final Object... params) {
         InputStream input = null;
         OutputStream output = null;
-        String form = this.taskinfo.getFrom();
-        String to = this.taskinfo.getTo();
+        String form = this.mTaskinfo.getFrom();
+        String to = this.mTaskinfo.getTo();
         boolean isAppend = false;
         try {
             final URL url = new URL(form);
@@ -79,17 +84,17 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
             IOUtils.closeQuietly(input);
             IOUtils.closeQuietly(output);
         }
-        return this.taskinfo;
+        return this.mTaskinfo;
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        this.taskinfo.setRead(0l);
-        this.taskinfo.setTotal(0l);
-        this.taskinfo.setProgress(0);
+        this.mTaskinfo.setRead(0l);
+        this.mTaskinfo.setTotal(0l);
+        this.mTaskinfo.setProgress(0);
         for (DownloadListener listener : this.listeners) {
-            listener.onDownloadStart(this.taskinfo);
+            listener.onDownloadStart(this.mTaskinfo);
         }
     }
 
@@ -100,12 +105,12 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
         long total = values[1];
         int progress = (int) (read * 100 / total);
 
-        this.taskinfo.setRead(read);
-        this.taskinfo.setTotal(total);
-        this.taskinfo.setProgress(progress);
+        this.mTaskinfo.setRead(read);
+        this.mTaskinfo.setTotal(total);
+        this.mTaskinfo.setProgress(progress);
 
         for (DownloadListener listener : this.listeners) {
-            listener.onDownloadProgressUpdate(this.taskinfo);
+            listener.onDownloadProgressUpdate(this.mTaskinfo);
         }
     }
 
@@ -113,7 +118,7 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
     protected void onCancelled() {
         super.onCancelled();
         for (DownloadListener listener : this.listeners) {
-            listener.onDownloadCancel(this.taskinfo);
+            listener.onDownloadCancel(this.mTaskinfo);
         }
     }
 
@@ -121,11 +126,11 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
     protected void onPostExecute(DownloadTaskInfo result) {
         super.onPostExecute(result);
         for (DownloadListener listener : this.listeners) {
-            listener.onDownloadFinish(this.taskinfo);
+            listener.onDownloadFinish(this.mTaskinfo);
         }
     }
 
     public DownloadTaskInfo getTaskinfo() {
-        return this.taskinfo;
+        return this.mTaskinfo;
     }
 }
