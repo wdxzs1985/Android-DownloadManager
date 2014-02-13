@@ -23,7 +23,7 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
     private final Set<DownloadListener> listeners = Collections.synchronizedSet(new HashSet<DownloadListener>());
     private DownloadTaskInfo mTaskinfo = null;
 
-    private int mBufferLength = KB * 8;
+    private int mBufferLength = DownloadTask.KB;
 
     public DownloadTask(final String from, final String to) {
         this.mTaskinfo = new DownloadTaskInfo();
@@ -138,7 +138,7 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
         return this.mBufferLength;
     }
 
-    public void setmBufferLength(int mBufferLength) {
+    public void setmBufferLength(final int mBufferLength) {
         this.mBufferLength = mBufferLength;
     }
 }
