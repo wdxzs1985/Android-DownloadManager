@@ -18,9 +18,12 @@ import android.os.AsyncTask;
 
 public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
 
-    private final Set<DownloadListener> listeners = Collections.synchronizedSet(new HashSet<DownloadListener>());
+    public static final int KB = 1024;
 
+    private final Set<DownloadListener> listeners = Collections.synchronizedSet(new HashSet<DownloadListener>());
     private DownloadTaskInfo mTaskinfo = null;
+
+    private int mBufferLength = KB * 8;
 
     public DownloadTask(final String from, final String to) {
         this.mTaskinfo = new DownloadTaskInfo();
@@ -61,7 +64,7 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
             input = new BufferedInputStream(url.openStream());
             output = FileUtils.openOutputStream(new File(to), isAppend);
 
-            final byte data[] = new byte[1024];
+            final byte data[] = new byte[this.mBufferLength];
             int count;
             while ((count = input.read(data)) != -1) {
                 loaded += count;
@@ -128,5 +131,13 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
 
     public DownloadTaskInfo getTaskinfo() {
         return this.mTaskinfo;
+    }
+
+    public int getmBufferLength() {
+        return this.mBufferLength;
+    }
+
+    public void setmBufferLength(int mBufferLength) {
+        this.mBufferLength = mBufferLength;
     }
 }
