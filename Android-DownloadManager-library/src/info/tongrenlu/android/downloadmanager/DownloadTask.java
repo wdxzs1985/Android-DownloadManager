@@ -127,6 +127,7 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
         for (final DownloadListener listener : this.listeners) {
             listener.onDownloadFinish(this.mTaskinfo);
         }
+        this.listeners.clear();
     }
 
     public DownloadTaskInfo getTaskinfo() {
