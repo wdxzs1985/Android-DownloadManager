@@ -11,7 +11,7 @@ public class DownloadManagerApplicationImpl extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        this.mDownloadManager = new DownloadManagerImpl(1);
+        this.mDownloadManager = new DownloadManagerImpl();
     }
 
     public DownloadManager getDownloadManager() {
