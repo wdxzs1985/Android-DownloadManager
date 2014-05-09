@@ -6,6 +6,8 @@ public interface DownloadManager {
 
     public List<DownloadTask> getTasks();
 
+    public DownloadTask getRunning();
+
     public boolean addTask(DownloadTask task);
 
     public boolean cancelTask(DownloadTask task);

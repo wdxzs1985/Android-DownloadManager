@@ -8,8 +8,8 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -20,7 +20,7 @@ public class DownloadTask extends AsyncTask<Object, Long, DownloadTaskInfo> {
 
     public static final int KB = 1024;
 
-    private final Set<DownloadListener> listeners = Collections.synchronizedSet(new HashSet<DownloadListener>());
+    private final List<DownloadListener> listeners = Collections.synchronizedList(new LinkedList<DownloadListener>());
     private DownloadTaskInfo mTaskinfo = null;
 
     private int mBufferLength = DownloadTask.KB;

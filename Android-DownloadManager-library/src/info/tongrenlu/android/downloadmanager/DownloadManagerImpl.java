@@ -11,7 +11,7 @@ import android.os.AsyncTask.Status;
 public class DownloadManagerImpl implements DownloadManager, DownloadListener {
 
     private final List<DownloadTask> mQueue = Collections.synchronizedList(new ArrayList<DownloadTask>());
-    private volatile boolean idle = true;
+    private DownloadTask running = null;
 
     @Override
     public List<DownloadTask> getTasks() {
@@ -49,10 +49,9 @@ public class DownloadManagerImpl implements DownloadManager, DownloadListener {
     @Override
     public void start() {
         if (this.isIdle() && CollectionUtils.isNotEmpty(this.mQueue)) {
-            this.setIdle(false);
-            final DownloadTask task = this.mQueue.remove(0);
-            task.registerListener(this);
-            task.execute();
+            this.running = this.mQueue.remove(0);
+            this.running.registerListener(this);
+            this.running.execute();
         }
     }
 
@@ -69,12 +68,12 @@ public class DownloadManagerImpl implements DownloadManager, DownloadListener {
 
     @Override
     public void onDownloadCancel(final DownloadTaskInfo taskinfo) {
-        this.setIdle(true);
+        this.running = null;
     }
 
     @Override
     public void onDownloadFinish(final DownloadTaskInfo taskinfo) {
-        this.setIdle(true);
+        this.running = null;
         this.start();
     }
 
@@ -83,11 +82,11 @@ public class DownloadManagerImpl implements DownloadManager, DownloadListener {
     }
 
     public boolean isIdle() {
-        return this.idle;
+        return this.running == null;
     }
 
-    public void setIdle(boolean idle) {
-        this.idle = idle;
+    public DownloadTask getRunning() {
+        return this.running;
     }
 
 }
